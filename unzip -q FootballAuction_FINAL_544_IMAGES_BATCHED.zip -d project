@@ -21,13 +21,13 @@ jobs:
         run: |
           echo "Files in repository:"
           ls -lah
-          test -f FootballAuction_FINAL_630_STRICT.zip
+          test -f FootballAuction_FINAL_544_IMAGES_BATCHED.zip
 
       - name: Extract Final Project
         run: |
           rm -rf project
           mkdir project
-          unzip -q FootballAuction_FINAL_630_STRICT.zip -d project
+          unzip -q FootballAuction_FINAL_544_IMAGES_BATCHED.zip -d project
 
       - name: Find Android Project
         run: |
