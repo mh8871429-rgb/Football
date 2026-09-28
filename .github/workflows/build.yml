@@ -1,0 +1,33 @@
+name: Build Football Auction APK
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
+
+      - name: Extract project
+        run: |
+          mkdir project
+          unzip -q *.zip -d project
+
+      - name: Build APK
+        run: |
+          gradle -p project assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FootballAuction-APK
+          path: project/app/build/outputs/apk/debug/*.apk
