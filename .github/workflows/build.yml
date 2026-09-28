@@ -19,15 +19,22 @@ jobs:
 
       - name: Extract project
         run: |
+          rm -rf project
           mkdir project
-          unzip -q *.zip -d project
+          unzip -q "$(find . -maxdepth 1 -name '*.zip' -print -quit)" -d project
+
+      - name: Find Android project
+        run: |
+          PROJECT_DIR=$(find project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs dirname)
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Android project found at: $PROJECT_DIR"
 
       - name: Build APK
         run: |
-          gradle -p project assembleDebug
+          gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FootballAuction-APK
-          path: project/app/build/outputs/apk/debug/*.apk
+          path: '${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk'
