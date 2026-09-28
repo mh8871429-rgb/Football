@@ -17,18 +17,54 @@ jobs:
         with:
           gradle-version: '8.10'
 
-      - name: Extract final project
+      - name: Check final ZIP
+        run: |
+          echo "Files in repository:"
+          ls -lah
+          test -f FootballAuction_FINAL_630_STRICT.zip
+
+      - name: Extract Final Project
         run: |
           rm -rf project
           mkdir project
-          unzip -q FootballAuction_FINAL_CLEAN.zip -d project
+          unzip -q FootballAuction_FINAL_630_STRICT.zip -d project
+
+      - name: Find Android Project
+        run: |
+          PROJECT_DIR=$(find project -type f -name "settings.gradle" -print -quit | xargs dirname)
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: settings.gradle not found"
+            exit 1
+          fi
+
+          echo "Android project found at: $PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Check Project
+        run: |
+          echo "Project directory:"
+          echo "$PROJECT_DIR"
+
+          echo "Project files:"
+          ls -lah "$PROJECT_DIR"
+
+          test -f "$PROJECT_DIR/settings.gradle"
+          test -f "$PROJECT_DIR/build.gradle"
+          test -f "$PROJECT_DIR/app/build.gradle"
 
       - name: Build APK
         run: |
-          gradle -p project assembleDebug
+          gradle -p "$PROJECT_DIR" clean assembleDebug --stacktrace
+
+      - name: Find APK
+        run: |
+          echo "Searching for APK..."
+          find "$PROJECT_DIR" -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FootballAuction-APK
-          path: project/app/build/outputs/apk/debug/*.apk
+          path: '${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk'
+          if-no-files-found: error
